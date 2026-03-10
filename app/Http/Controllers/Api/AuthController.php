@@ -8,30 +8,25 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Requests\RegisterUser;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 class AuthController extends Controller
 {
-    public function register(Request $request)
+    public function register(RegisterUser $request) :JsonResponse
     {
-
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:6|confirmed',
-        ]);
-
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+        $user = User::create(
+            array_merge(
+                $request->validated(), 
+                ['password' => Hash::make($request->password)])
+        );
 
         $token = JWTAuth::fromUser($user);
 
         return response()->json(['message' => 'Account created successfully'], 201);
     }
 
-    public function login(Request $request)
+    public function login(Request $request) :JsonResponse
     {
 
         $credentials = $request->only('email', 'password');
@@ -43,13 +38,13 @@ class AuthController extends Controller
         return response()->json(['message' => 'Login successful' . $token], 200);
     }
 
-    public function logout()
+    public function logout() :JsonResponse
     {
         Auth::logout();
         return response()->json(['message' => 'Logout successful'], 200);
     }
 
-    public function refresh()
+    public function refresh() :JsonResponse
     {
         $token = Auth::refresh();
         return response()->json(['token' => $token]);
