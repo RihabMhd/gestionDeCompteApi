@@ -30,4 +30,13 @@ Route::middleware('auth:api')->group(function () {
     Route::put('/me', [ProfileController::class, 'updateProfile']);
     Route::put('/me/password', [ProfileController::class, 'updatePassword']);
     Route::delete('/me', [ProfileController::class, 'destroy']);
+
+    Route::get('/test-auth', function () {
+    try {
+        $user = auth('api')->authenticate();
+        return response()->json(['user' => $user]);
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage()], 401);
+    }
+});
 });
