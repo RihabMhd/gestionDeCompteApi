@@ -13,12 +13,13 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 
 class AuthController extends Controller
 {
-    public function register(RegisterUser $request) :JsonResponse
+    public function register(RegisterUser $request): JsonResponse
     {
         $user = User::create(
             array_merge(
-                $request->validated(), 
-                ['password' => Hash::make($request->password)])
+                $request->validated(),
+                ['password' => Hash::make($request->password)]
+            )
         );
 
         $token = JWTAuth::fromUser($user);
@@ -26,25 +27,27 @@ class AuthController extends Controller
         return response()->json(['message' => 'Account created successfully'], 201);
     }
 
-    public function login(Request $request) :JsonResponse
+    public function login(Request $request): JsonResponse
     {
-
         $credentials = $request->only('email', 'password');
 
         if (!$token = Auth::attempt($credentials)) {
-            return response()->json(['error' => 'Invalid credentials'], 401);
+            return response()->json(['message' => 'Invalid credentials'], 401);
         }
 
-        return response()->json(['message' => 'Login successful' . $token], 200);
+        return response()->json([
+            'message' => 'Login successful',
+            'token' => $token
+        ], 200);
     }
 
-    public function logout() :JsonResponse
+    public function logout(): JsonResponse
     {
         Auth::logout();
         return response()->json(['message' => 'Logout successful'], 200);
     }
 
-    public function refresh() :JsonResponse
+    public function refresh(): JsonResponse
     {
         $token = Auth::refresh();
         return response()->json(['token' => $token]);
